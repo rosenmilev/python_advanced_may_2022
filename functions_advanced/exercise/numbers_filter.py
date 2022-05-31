@@ -8,7 +8,7 @@ def even_odd_filter(**kwargs):
     for key, value in kwargs.items():
         dict_of_nums[key] = list(filter(even_or_odd_command(key), value))
 
-    return dict(sorted(dict_of_nums.items(), key=lambda x: x[1], reverse=True))
+    return {key: value for key, value in sorted(dict_of_nums.items(), key=lambda x: x[1], reverse=True)}
 
 
 print(even_odd_filter(
