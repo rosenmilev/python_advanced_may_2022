@@ -19,4 +19,6 @@ The positives are stronger than the negatives"""
 
 
 nums = [int(x) for x in input().split(" ")]
-print(negative_vs_positive(nums))
+
+# Test code:
+# print(negative_vs_positive(nums))
