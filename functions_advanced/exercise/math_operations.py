@@ -5,7 +5,8 @@ def math_operations(*args, **kwargs):
 
     for float_number in args:
         counter += 1
-        if counter == 5:
+
+        if counter > 4:
             counter = 1
 
         if counter == 1:
