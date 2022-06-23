@@ -1,61 +1,29 @@
-def moving_func(i, j, direction, dir_map, size):
-    new_position = dir_map[direction](i, j)
-    if new_position[0] < 0 or new_position[0] > size - 1 or new_position[1] < 0 or new_position[1] > size - 1:
+def next_position(i, j, direction, size):
+    if direction == "up" and i - 1 >= 0:
+        return i - 1, j
+    elif direction == "down" and i + 1 < size:
+        return i + 1, j
+    elif direction == "left" and j - 1 >= 0:
+        return i, j - 1
+    elif direction == "right" and j + 1 < size:
+        return i, j + 1
+    else:
         return i, j
-    return new_position[0], new_position[1]
 
 
-def cookie_func(i, j, neighbor, dir_map, presents, good_kids):
-    upper_cell = dir_map["up"](i, j)
-    bottom_cell = dir_map["down"](i, j)
-    left_cell = dir_map["left"](i, j)
-    right_cell = dir_map["right"](i, j)
+def cookie_func(i, j, neighbour):
+    res = []
+    if neighbour[i][j - 1] == "V" or neighbour[i][j - 1] == "X":
+        res.append([i, j - 1])
+    if neighbour[i][j + 1] == "V" or neighbour[i][j + 1] == "X":
+        res.append([i, j + 1])
+    if neighbour[i - 1][j] == "V" or neighbour[i - 1][j] == "X":
+        res.append([i - 1, j])
+    if neighbour[i + 1][j] == "V" or neighbour[i + 1][j] == "X":
+        res.append([i + 1, j])
 
-    if neighbor[left_cell[0]][left_cell[1]] == "V":
-        presents -= 1
-        good_kids -= 1
-    elif neighbor[left_cell[0]][left_cell[1]] == "X":
-        presents -= 1
+    return res
 
-    neighbor[left_cell[0]][left_cell[1]] = "-"
-    if presents == 0:
-        return neighbor, presents, good_kids
-
-    if neighbor[right_cell[0]][right_cell[1]] == "V":
-        presents -= 1
-        good_kids -= 1
-    elif neighbor[right_cell[0]][right_cell[1]] == "X":
-        presents -= 1
-    neighbor[right_cell[0]][right_cell[1]] = "-"
-    if presents == 0:
-        return neighbor, presents, good_kids
-
-    if neighbor[upper_cell[0]][upper_cell[1]] == "V":
-        presents -= 1
-        good_kids -= 1
-    elif neighbor[upper_cell[0]][upper_cell[1]] == "X":
-        presents -= 1
-    neighbor[upper_cell[0]][upper_cell[1]] = "-"
-
-    if presents == 0:
-        return neighbor, presents, good_kids
-
-    if neighbor[bottom_cell[0]][bottom_cell[1]] == "V":
-        presents -= 1
-        good_kids -= 1
-    elif neighbor[bottom_cell[0]][bottom_cell[1]] == "X":
-        presents -= 1
-    neighbor[bottom_cell[0]][bottom_cell[1]] = "-"
-
-    return neighbor, presents, good_kids
-
-
-directions_map = {
-    "up": lambda r, c: (r - 1, c),
-    "down": lambda r, c: (r + 1, c),
-    "left": lambda r, c: (r, c - 1),
-    "right": lambda r, c: (r, c + 1)
-}
 
 presents_left = int(input())
 size = int(input())
@@ -63,6 +31,7 @@ santa_pos_i = 0
 santa_pos_j = 0
 neighborhood = []
 nice_kids = 0
+nice_kids_gifted = 0
 
 for i in range(size):
     line = input().split(" ")
@@ -74,38 +43,38 @@ for i in range(size):
             nice_kids += 1
     neighborhood.append(line)
 
-nice_kids_total = nice_kids
-
-while True:
+while presents_left > 0:
     command = input()
-
     if command == "Christmas morning":
-        neighborhood[santa_pos_i][santa_pos_j] = "S"
         break
-
     neighborhood[santa_pos_i][santa_pos_j] = "-"
-
-    santa_pos_i, santa_pos_j = moving_func(santa_pos_i, santa_pos_j, command, directions_map, size)
+    santa_pos_i, santa_pos_j = next_position(santa_pos_i, santa_pos_j, command, size)
 
     if neighborhood[santa_pos_i][santa_pos_j] == "V":
-        nice_kids -= 1
         presents_left -= 1
-    elif neighborhood[santa_pos_i][santa_pos_j] == "C":
-        neighborhood, presents_left, nice_kids = cookie_func(santa_pos_i, santa_pos_j, neighborhood, directions_map, presents_left, nice_kids)
-    elif neighborhood[santa_pos_i][santa_pos_j] == "X":
-        neighborhood[santa_pos_i][santa_pos_j] = "-"
+        nice_kids_gifted += 1
 
-    if presents_left == 0:
-        print("Santa ran out of presents!")
-        neighborhood[santa_pos_i][santa_pos_j] = "S"
-        break
+    elif neighborhood[santa_pos_i][santa_pos_j] == "C":
+        gifted_kids_around = cookie_func(santa_pos_i, santa_pos_j, neighborhood)
+        for kid_i, kid_j in gifted_kids_around:
+            if neighborhood[kid_i][kid_j] == "V":
+                nice_kids_gifted += 1
+            presents_left -= 1
+            neighborhood[kid_i][kid_j] = "-"
+            if presents_left == 0:
+                break
+
+    neighborhood[santa_pos_i][santa_pos_j] = "S"
+if nice_kids_gifted != nice_kids and presents_left == 0:
+    print("Santa ran out of presents!")
 
 for i in range(size):
     for el in neighborhood[i]:
         print(el, end=" ")
     print()
 
-if nice_kids == 0:
-    print(f"Good job, Santa! {nice_kids_total} happy nice kid/s.")
+if nice_kids_gifted == nice_kids:
+    print(f"Good job, Santa! {nice_kids} happy nice kid/s.")
 else:
-    print(f"No presents for {nice_kids} nice kid/s.")
+    print(f"No presents for {nice_kids - nice_kids_gifted} nice kid/s.")
+    
